@@ -1,40 +1,37 @@
-const http = require('http')
-const {readFileSync} = require('fs')
+const express = require('express');
+const app = express();
 
-//get all files
-const homePage = readFileSync('./navbar-app/index.html')
-const homeStyles = readFileSync('./navbar-app/styles.css')
-const HomeImage = readFileSync('./navbar-app/logo.svg')
-const HomeLogic = readFileSync('./navbar-app/browser-app.js')
+const {products} = require('./data.js')
 
-const server = http.createServer((req,res)=>{
-    //console.log(req.method)
-    //console.log(req.url)
-    const url = req.url
-    console.log(url)
-    if(url === '/'){
-        res.writeHead(200, {'content-type': 'text/html'}) // i tell you what my response is // media type
-        res.write(homePage)
-        res.end()
-    //styles
-    } else if(url === '/styles.css'){
-        res.writeHead(200, {'content-type': 'text/css'}) // i tell you what my response is // media type
-        res.write(homeStyles)
-        res.end()
-    // image/logo
-    } else if(url === '/logo.svg'){
-        res.writeHead(200, {'content-type': 'image/svg+xml'}) // i tell you what my response is // media type
-        res.write(HomeImage)
-        res.end()
-    } else if(url === '/browser-app.js'){
-        res.writeHead(200, {'content-type': 'text/javascript'}) // i tell you what my response is // media type
-        res.write(HomeLogic)
-        res.end()
-    } else {
-        res.writeHead(404, {'content-type': 'text/html'}) // i tell you what my response is // media type
-        res.write('<h1> Page not found </h1>')
-        res.end() 
-    }
-       
+app.get('/', (req,res) => {
+    res.send('<h1> Home page </h1> <a href="/api/products">products</a>')
 })
-server.listen(4550)
+
+app.get('/api/products', (req,res) => {
+    const newProducts = products.map((product) => {
+        const {id, name, image} = product;
+        return {id, name, image}
+    })
+    res.json(newProducts)
+})
+
+app.get('/api/products/:productID', (req,res) => {
+    //console.log(req);
+    //console.log(req.params)
+    const {productID} = req.params
+    const singleProduct = products.find((product) => product.id === Number(productID))
+    if (!singleProduct){
+        return res.status(400).send('Product does not exist')
+    }
+    return res.json(singleProduct)
+})
+
+app.get('/api/products/:productID/reviews/:reviewID', (req,res) => {
+    console.log(req.params)
+    res.send('hello world')
+})
+
+app.listen(4500, () => {
+    console.log('server is listening on port 4500 ...')
+
+})
